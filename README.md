@@ -1,4 +1,4 @@
-# rdass.monitoring.prometheus.operator
+# Prometheus Operator on bonsai made k3s cluster
 
 the Prometheus Operator for Kubernetes provides easy monitoring definitions for Kubernetes services and deployment and management of Prometheus instances.
 
