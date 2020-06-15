@@ -1,46 +1,71 @@
 #!/bin/bash
+GREEN='\033[0;32m'
+LB='\033[1;34m' # light blue
+NC='\033[0m' # No Color
 
 export KUBECONFIG=`pwd`/k3s.yaml && echo '[Info] setting KUBECONFIG='$KUBECONFIG
 
-echo "[Info] ...installing tiller"
-kubectl -n kube-system create serviceaccount tiller
-kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-curl -LO https://git.io/get_helm.sh
-chmod 700 get_helm.sh
-./get_helm.sh
-helm init --service-account tiller
+read -p  "Do you want to deploy Metallb as Loadbalancer? type "y/n" promt with [ENTER]:" ans
+
+answer=$(echo "$ans" | awk '{print tolower($0)}')
+
+
+echo -e "[${LB}Info${NC}] ...installing tiller"
+kubectl -n kube-system create serviceaccount tiller >/dev/null
+kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller >/dev/null
+curl -LO https://git.io/get_helm.sh >/dev/null
+chmod 700 get_helm.sh >/dev/null
+./get_helm.sh >/dev/null
+helm init --service-account tiller >/dev/null
 kubectl rollout status deployment tiller-deploy -n kube-system
 
 sleep 5
 
-echo "[Info] ...installing promehteus 8.13.0 via helm v2"
-helm install stable/prometheus-operator --name promo --version=8.13.0
+echo -e "[${LB}Info${NC}] ...deploying promehteus 8.13.0 via helm v2 in namespace=monitoring"
+helm install stable/prometheus-operator --name promo --version=8.13.0 --namespace monitoring
 
-echo "[Info] deploy alertmessages to the alertmanager"
+echo -e "[${LB}Info${NC}] deploy alertmessages to the alertmanager"
 ./blackbox-exporter/alertmanager-config.sh
 
-echo "[Info] setup a namespace for separation"
+echo -e "[${LB}Info${NC}] setup a namespace for separation"
 kubectl apply -f example/1-application-ns.yml
 
-echo "[Info] deploy the scrap configuration"
+echo -e "[${LB}Info${NC}] deploy the scrap configuration"
 kubectl apply -f example/2-application-deployment-configmap.yml
 
-echo "[Info] deploy the application"
+echo -e "[${LB}Info${NC}] deploy the application"
 kubectl apply -f example/3-application-deployment.yml
 
-echo "[Info] deploy the service"
+echo -e "[${LB}Info${NC}] deploy the service"
 kubectl apply -f example/4-application-service.yml
 
-echo "[Info] deploy prometheus alertrule/s"
+echo -e "[${LB}Info${NC}] deploy prometheus alertrule/s"
 kubectl apply -f example/5-application-alertrule.yml
 
-echo "[Info] deploy ServiceMonitors to connect the service with prometheues targetservice"
+echo -e "[${LB}Info${NC}] deploy ServiceMonitors to connect the service with prometheues targetservice"
 kubectl apply -f example/6-application-service.yml
 
-echo "[Info] deploy grafana config"
+echo -e "[${LB}Info${NC}] deploy grafana config"
 kubectl apply -f grafana/grafana-config.sh
 
 # cleanup
 rm get_helm.sh
 
+if [ $answer != 'y' ];
+then
+  echo "Metallb will not be deployed."
+else
+  echo -e "[${LB}Info${NC}] deploy metallb loadbalancer v0.8.3"
+  kubectl create -f https://raw.githubusercontent.com/google/metallb/v0.8.3/manifests/metallb.yaml >/dev/null
+  kubectl create -f metal-lb-layer2-config.yaml >/dev/null
+  kubectl rollout status -n metallb-system daemonset speaker
+  
+  echo -e "[${LB}Info${NC}] deploy grafana expose service"
+  kubectl create -f grafana/promo-grafana-expose-service.yaml
+fi
+
+echo '[Hints] operator fails, dont use - in namespace name'
 echo '[Hints] alertmanager fails, remember to set a alert url'
+
+echo -e "[${GREEN}FINISHED${NC}]"
+echo "############################################################################"

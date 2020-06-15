@@ -1,5 +1,5 @@
 #!/bin/sh
-kubectl delete secret promo-grafana --namespace=default
+kubectl delete secret promo-grafana --namespace=monitoring
 
 sleep 5
 
