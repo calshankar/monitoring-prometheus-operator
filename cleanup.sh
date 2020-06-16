@@ -14,7 +14,7 @@ for NODE in ${NODES}; do multipass stop ${NODE} && multipass delete ${NODE}; don
 # Free discspace
 multipass purge
 
-rm hosts k3s.yaml.back k3s.yaml get_helm.sh etchosts etchosts.unix 2> /dev/null
+rm hosts hosts.backup k3s.yaml.back k3s.yaml get_helm.sh  etchosts.unix 2> /dev/null
 echo -e "[${GREEN}FINISHED${NC}]"
 echo "############################################################################"
 echo -e "[${LB}Info${NC}] Please cleanup the host entries in your /etc/hosts manually"
