@@ -14,7 +14,6 @@ then
   exists=0
 fi
 
-
 # cut existing config
 if (("$exists" > "0")) ; then
   start=$(grep -n "####### multipass hosts start ##########" hosts | awk -F: '{print $1}' | head -1)
