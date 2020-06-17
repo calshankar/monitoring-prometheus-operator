@@ -4,9 +4,9 @@ nodeCount=2
 read -p  "How many worker nodes do you want?(default:2) promt with [ENTER]:" input
 nodeCount="${input:-$nodeCount}"
 
-MASTER=$(echo " k3s-master") && WORKER=$(eval 'echo k3s-worker{1..'"$nodeCount"'}')
-NODES+=$WORKER
+MASTER=$(echo "k3s-master ") && WORKER=$(eval 'echo k3s-worker{1..'"$nodeCount"'}')
 NODES+=$MASTER
+NODES+=$WORKER
 
 # Create containers
 for NODE in ${NODES}; do multipass launch --name ${NODE} --cpus 2 --mem 4G --disk 10G; done
