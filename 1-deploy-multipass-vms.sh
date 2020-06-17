@@ -8,8 +8,6 @@ MASTER=$(echo " k3s-master") && WORKER=$(eval 'echo k3s-worker{1..'"$nodeCount"'
 NODES+=$WORKER
 NODES+=$MASTER
 
-echo $NODES
-
 # Create containers
 for NODE in ${NODES}; do multipass launch --name ${NODE} --cpus 2 --mem 4G --disk 10G; done
 
