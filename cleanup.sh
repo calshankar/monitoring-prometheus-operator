@@ -20,6 +20,7 @@ then
 
   # backup before cleanup
   cp /etc/hosts hosts.cleanup.backup
+  cp hosts.cleanup.backup hosts
 
   # seach for existing multipass config
   exists=$(grep -n "####### multipass hosts start ##########" hosts | awk -F: '{print $1}' | head -1)
@@ -34,8 +35,11 @@ then
     start=$(grep -n "####### multipass hosts start ##########" hosts | awk -F: '{print $1}' | head -1)
     ((start=start-1))
     end=$(grep -n "####### multipass hosts end   ##########" hosts | awk -F: '{print $1}' | head -1)
-    sed -i '' ${start},${end}d /etc/hosts
+    sed -i '' ${start},${end}d hosts
   fi
+
+  # cp cleaned hosts to /etc/hosts
+  cp hosts /etc/hosts
 fi
 
 # Stop then delete nodes
